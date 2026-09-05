@@ -632,6 +632,38 @@ export const cardStyles = css`
     height: 72px;
   }
 
+  .bms-footer-stats {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    padding-top: 8px;
+    margin-top: 2px;
+    border-top: 1px solid var(--divider);
+    font-size: 0.72rem;
+    color: var(--secondary-text);
+  }
+
+  .bms-footer-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  .bms-footer-item:hover {
+    opacity: 0.8;
+  }
+
+  .bms-footer-item ha-icon {
+    --mdc-icon-size: 15px;
+    color: #10b981;
+  }
+
+  .bms-footer-item strong {
+    color: var(--primary-text);
+  }
+
   .bms-body {
     display: flex;
     align-items: center;

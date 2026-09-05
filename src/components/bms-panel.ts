@@ -125,7 +125,12 @@ export function renderBmsPanel(props: BmsPanelProps): TemplateResult {
         <div class="dual-battery-container">
           <!-- BATTERY 1 (12V Pack) -->
           <div class="pack-column">
-            <div class="pack-header">
+            <div
+              class="pack-header"
+              @click=${() => onBmsClick(bmsConfig.bat1_voltage_entity || bmsConfig.bat1_soc_entity || bmsConfig.battery_1?.voltage_entity || bmsConfig.battery_1?.soc_entity)}
+              style="cursor: pointer;"
+              title="Нажмите для подробной информации по АКБ #1"
+            >
               <div class="pack-name-row">
                 <span class="pack-name">${battery1.name}</span>
                 ${battery1.soc !== null && !isNaN(battery1.soc)
@@ -180,7 +185,12 @@ export function renderBmsPanel(props: BmsPanelProps): TemplateResult {
 
           <!-- BATTERY 2 (12V Pack) -->
           <div class="pack-column">
-            <div class="pack-header">
+            <div
+              class="pack-header"
+              @click=${() => onBmsClick(bmsConfig.bat2_voltage_entity || bmsConfig.bat2_soc_entity || bmsConfig.battery_2?.voltage_entity || bmsConfig.battery_2?.soc_entity)}
+              style="cursor: pointer;"
+              title="Нажмите для подробной информации по АКБ #2"
+            >
               <div class="pack-name-row">
                 <span class="pack-name">${battery2.name}</span>
                 ${battery2.soc !== null && !isNaN(battery2.soc)
@@ -226,6 +236,30 @@ export function renderBmsPanel(props: BmsPanelProps): TemplateResult {
             </div>
           </div>
         </div>
+
+        <!-- Optional summary footer if cycleCount or capacity is configured -->
+        ${(cycleCount !== null || remainingCapacity !== null)
+          ? html`
+              <div class="bms-footer-stats">
+                ${cycleCount !== null && !isNaN(cycleCount)
+                  ? html`
+                      <div class="bms-footer-item" @click=${() => onBmsClick(bmsConfig.cycle_count_entity)}>
+                        <ha-icon icon="mdi:refresh"></ha-icon>
+                        <span>Циклы: <strong>${cycleCount}</strong></span>
+                      </div>
+                    `
+                  : ''}
+                ${remainingCapacity !== null && !isNaN(remainingCapacity)
+                  ? html`
+                      <div class="bms-footer-item" @click=${() => onBmsClick(bmsConfig.remaining_capacity_entity)}>
+                        <ha-icon icon="mdi:battery-charging-high"></ha-icon>
+                        <span>Остаток: <strong>${remainingCapacity.toFixed(1)} Ah</strong></span>
+                      </div>
+                    `
+                  : ''}
+              </div>
+            `
+          : ''}
       </div>
     `;
   }

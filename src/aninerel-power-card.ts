@@ -174,7 +174,13 @@ export class AninerelPowerCard extends LitElement implements LovelaceCard {
         ids.push(`${prefix}${i}`);
       }
 
-      // Battery 1
+      // Battery 1 (flat & nested)
+      if (bms.bat1_soc_entity) ids.push(bms.bat1_soc_entity);
+      if (bms.bat1_voltage_entity) ids.push(bms.bat1_voltage_entity);
+      if (bms.bat1_temperature_entity) ids.push(bms.bat1_temperature_entity);
+      if (bms.bat1_cell_prefix) {
+        for (let i = 1; i <= 4; i++) ids.push(`${bms.bat1_cell_prefix}${i}`);
+      }
       if (bms.battery_1) {
         const b1 = bms.battery_1;
         if (b1.soc_entity) ids.push(b1.soc_entity);
@@ -185,7 +191,13 @@ export class AninerelPowerCard extends LitElement implements LovelaceCard {
         }
       }
 
-      // Battery 2
+      // Battery 2 (flat & nested)
+      if (bms.bat2_soc_entity) ids.push(bms.bat2_soc_entity);
+      if (bms.bat2_voltage_entity) ids.push(bms.bat2_voltage_entity);
+      if (bms.bat2_temperature_entity) ids.push(bms.bat2_temperature_entity);
+      if (bms.bat2_cell_prefix) {
+        for (let i = 1; i <= 4; i++) ids.push(`${bms.bat2_cell_prefix}${i}`);
+      }
       if (bms.battery_2) {
         const b2 = bms.battery_2;
         if (b2.soc_entity) ids.push(b2.soc_entity);
@@ -353,7 +365,14 @@ export class AninerelPowerCard extends LitElement implements LovelaceCard {
 
     // BMS Redodo telemetry (Single or Dual 12V Series)
     const bms = this._config.bms;
-    const isDual = Boolean(bms?.dual_battery || (bms?.battery_1 && bms?.battery_2));
+    const isDual = Boolean(
+      bms?.dual_battery ||
+      (bms?.battery_1 && bms?.battery_2) ||
+      bms?.bat1_soc_entity ||
+      bms?.bat1_voltage_entity ||
+      bms?.bat2_soc_entity ||
+      bms?.bat2_voltage_entity
+    );
 
     let bmsCells: CellData[] = [];
     let bat1Data: DualBatteryData | undefined;
@@ -364,45 +383,56 @@ export class AninerelPowerCard extends LitElement implements LovelaceCard {
         const b1 = bms.battery_1;
         const b2 = bms.battery_2;
 
-        const v1 = b1?.voltage_entity
-          ? this._getNumber(b1.voltage_entity)
+        const v1Entity = bms.bat1_voltage_entity || b1?.voltage_entity;
+        const v2Entity = bms.bat2_voltage_entity || b2?.voltage_entity;
+
+        const v1 = v1Entity
+          ? this._getNumber(v1Entity)
           : batteryVoltage
           ? Number((batteryVoltage / 2).toFixed(2))
           : null;
-        const v2 = b2?.voltage_entity
-          ? this._getNumber(b2.voltage_entity)
+        const v2 = v2Entity
+          ? this._getNumber(v2Entity)
           : batteryVoltage
           ? Number((batteryVoltage / 2).toFixed(2))
           : null;
 
-        const soc1 = b1?.soc_entity ? this._getNumber(b1.soc_entity) : (batterySoc || null);
-        const soc2 = b2?.soc_entity ? this._getNumber(b2.soc_entity) : (batterySoc || null);
+        const soc1Entity = bms.bat1_soc_entity || b1?.soc_entity;
+        const soc2Entity = bms.bat2_soc_entity || b2?.soc_entity;
 
-        const t1 = b1?.temperature_entity ? this._getNumber(b1.temperature_entity) : null;
-        const t2 = b2?.temperature_entity ? this._getNumber(b2.temperature_entity) : null;
+        const soc1 = soc1Entity ? this._getNumber(soc1Entity) : (batterySoc || null);
+        const soc2 = soc2Entity ? this._getNumber(soc2Entity) : (batterySoc || null);
 
-        // Scan 4 cells for Battery 1
+        const t1Entity = bms.bat1_temperature_entity || b1?.temperature_entity;
+        const t2Entity = bms.bat2_temperature_entity || b2?.temperature_entity;
+
+        const t1 = t1Entity ? this._getNumber(t1Entity) : null;
+        const t2 = t2Entity ? this._getNumber(t2Entity) : null;
+
+        // Scan cells for Battery 1 (default 4 cells)
         const cells1: CellData[] = [];
-        const prefix1 = b1?.cell_voltage_prefix || 'sensor.redodo_1_cell_voltage_';
-        for (let i = 1; i <= (b1?.cell_count || 4); i++) {
+        const prefix1 = bms.bat1_cell_prefix || b1?.cell_voltage_prefix || 'sensor.redodo_1_cell_voltage_';
+        const count1 = b1?.cell_count || 4;
+        for (let i = 1; i <= count1; i++) {
           let val = this._getNumber(`${prefix1}${i}`);
           if (val > 100) val = val / 1000;
-          if (val <= 0 && v1 && v1 > 0) val = Number((v1 / 4).toFixed(3));
+          if (val <= 0 && v1 && v1 > 0) val = Number((v1 / count1).toFixed(3));
           cells1.push({ index: i, voltage: val > 0 ? val : 3.38, rawEntityId: `${prefix1}${i}` });
         }
 
-        // Scan 4 cells for Battery 2
+        // Scan cells for Battery 2 (default 4 cells)
         const cells2: CellData[] = [];
-        const prefix2 = b2?.cell_voltage_prefix || 'sensor.redodo_2_cell_voltage_';
-        for (let i = 1; i <= (b2?.cell_count || 4); i++) {
+        const prefix2 = bms.bat2_cell_prefix || b2?.cell_voltage_prefix || 'sensor.redodo_2_cell_voltage_';
+        const count2 = b2?.cell_count || 4;
+        for (let i = 1; i <= count2; i++) {
           let val = this._getNumber(`${prefix2}${i}`);
           if (val > 100) val = val / 1000;
-          if (val <= 0 && v2 && v2 > 0) val = Number((v2 / 4).toFixed(3));
-          cells2.push({ index: i + 4, voltage: val > 0 ? val : 3.38, rawEntityId: `${prefix2}${i}` });
+          if (val <= 0 && v2 && v2 > 0) val = Number((v2 / count2).toFixed(3));
+          cells2.push({ index: i + count1, voltage: val > 0 ? val : 3.38, rawEntityId: `${prefix2}${i}` });
         }
 
         bat1Data = {
-          name: b1?.name || 'АКБ #1 (12V)',
+          name: bms.bat1_name || b1?.name || 'АКБ #1 (12V)',
           voltage: v1,
           soc: soc1,
           temperature: t1,
@@ -410,7 +440,7 @@ export class AninerelPowerCard extends LitElement implements LovelaceCard {
         };
 
         bat2Data = {
-          name: b2?.name || 'АКБ #2 (12V)',
+          name: bms.bat2_name || b2?.name || 'АКБ #2 (12V)',
           voltage: v2,
           soc: soc2,
           temperature: t2,

@@ -93,6 +93,19 @@ export interface BmsConfig {
 
   // Dual Battery Series (2x 12V LiFePO4 = 24V)
   dual_battery?: boolean;
+  bat1_name?: string;
+  bat1_soc_entity?: string;
+  bat1_voltage_entity?: string;
+  bat1_temperature_entity?: string;
+  bat1_cell_prefix?: string;
+
+  bat2_name?: string;
+  bat2_soc_entity?: string;
+  bat2_voltage_entity?: string;
+  bat2_temperature_entity?: string;
+  bat2_cell_prefix?: string;
+
+  // Nested object support (YAML friendly)
   battery_1?: SingleBatteryConfig;
   battery_2?: SingleBatteryConfig;
 }

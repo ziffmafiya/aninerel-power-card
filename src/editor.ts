@@ -9,7 +9,24 @@ export class AninerelPowerCardEditor extends LitElement {
   @state() private _config!: AninerelCardConfig;
 
   public setConfig(config: AninerelCardConfig): void {
-    this._config = config;
+    const copy = JSON.parse(JSON.stringify(config || {}));
+    if (copy.bms) {
+      if (copy.bms.battery_1) {
+        if (!copy.bms.bat1_name && copy.bms.battery_1.name) copy.bms.bat1_name = copy.bms.battery_1.name;
+        if (!copy.bms.bat1_soc_entity && copy.bms.battery_1.soc_entity) copy.bms.bat1_soc_entity = copy.bms.battery_1.soc_entity;
+        if (!copy.bms.bat1_voltage_entity && copy.bms.battery_1.voltage_entity) copy.bms.bat1_voltage_entity = copy.bms.battery_1.voltage_entity;
+        if (!copy.bms.bat1_temperature_entity && copy.bms.battery_1.temperature_entity) copy.bms.bat1_temperature_entity = copy.bms.battery_1.temperature_entity;
+        if (!copy.bms.bat1_cell_prefix && copy.bms.battery_1.cell_voltage_prefix) copy.bms.bat1_cell_prefix = copy.bms.battery_1.cell_voltage_prefix;
+      }
+      if (copy.bms.battery_2) {
+        if (!copy.bms.bat2_name && copy.bms.battery_2.name) copy.bms.bat2_name = copy.bms.battery_2.name;
+        if (!copy.bms.bat2_soc_entity && copy.bms.battery_2.soc_entity) copy.bms.bat2_soc_entity = copy.bms.battery_2.soc_entity;
+        if (!copy.bms.bat2_voltage_entity && copy.bms.battery_2.voltage_entity) copy.bms.bat2_voltage_entity = copy.bms.battery_2.voltage_entity;
+        if (!copy.bms.bat2_temperature_entity && copy.bms.battery_2.temperature_entity) copy.bms.bat2_temperature_entity = copy.bms.battery_2.temperature_entity;
+        if (!copy.bms.bat2_cell_prefix && copy.bms.battery_2.cell_voltage_prefix) copy.bms.bat2_cell_prefix = copy.bms.battery_2.cell_voltage_prefix;
+      }
+    }
+    this._config = copy;
   }
 
   private _computeLabel(schema: any): string {
@@ -112,17 +129,70 @@ export class AninerelPowerCardEditor extends LitElement {
         schema: [
           {
             name: 'dual_battery',
-            label: 'Две батареи 12В последовательно (Серия 24В)',
+            label: '🔋 Режим: Две батареи 12В последовательно (Серия 24В)',
             selector: { boolean: {} },
           },
+          // --- Батарея #1 (12V LiFePO4) ---
+          {
+            name: 'bat1_name',
+            label: 'АКБ #1: Название батареи (напр. Redodo #1)',
+            selector: { text: {} },
+          },
+          {
+            name: 'bat1_soc_entity',
+            label: 'АКБ #1: Уровень заряда (SOC %)',
+            selector: { entity: { domain: 'sensor' } },
+          },
+          {
+            name: 'bat1_voltage_entity',
+            label: 'АКБ #1: Напряжение батареи (~13.5В)',
+            selector: { entity: { domain: 'sensor' } },
+          },
+          {
+            name: 'bat1_temperature_entity',
+            label: 'АКБ #1: Температура (°C)',
+            selector: { entity: { domain: 'sensor' } },
+          },
+          {
+            name: 'bat1_cell_prefix',
+            label: 'АКБ #1: Префикс сенсоров ячеек (1..4)',
+            selector: { text: {} },
+          },
+          // --- Батарея #2 (12V LiFePO4) ---
+          {
+            name: 'bat2_name',
+            label: 'АКБ #2: Название батареи (напр. Redodo #2)',
+            selector: { text: {} },
+          },
+          {
+            name: 'bat2_soc_entity',
+            label: 'АКБ #2: Уровень заряда (SOC %)',
+            selector: { entity: { domain: 'sensor' } },
+          },
+          {
+            name: 'bat2_voltage_entity',
+            label: 'АКБ #2: Напряжение батареи (~13.5В)',
+            selector: { entity: { domain: 'sensor' } },
+          },
+          {
+            name: 'bat2_temperature_entity',
+            label: 'АКБ #2: Температура (°C)',
+            selector: { entity: { domain: 'sensor' } },
+          },
+          {
+            name: 'bat2_cell_prefix',
+            label: 'АКБ #2: Префикс сенсоров ячеек (1..4)',
+            selector: { text: {} },
+          },
+          // --- Общие параметры сборки / Одиночный аккумулятор ---
           {
             name: 'soc_entity',
-            label: 'Уровень заряда АКБ (SOC %)',
+            label: 'Общий / Средний SOC % (если есть общий датчик)',
             selector: { entity: { domain: 'sensor' } },
           },
           {
             name: 'voltage_entity',
-            label: 'Напряжение батареи по BMS',
+            label: 'Общее напряжение батареи по BMS (24В)',
             selector: { entity: { domain: 'sensor' } },
           },
           {
@@ -147,12 +217,12 @@ export class AninerelPowerCardEditor extends LitElement {
           },
           {
             name: 'cell_count',
-            label: 'Количество ячеек (для 24В = 8)',
+            label: 'Количество ячеек единой сборки (для 24В = 8)',
             selector: { number: { min: 4, max: 16, step: 1, mode: 'box' } },
           },
           {
             name: 'cell_voltage_prefix',
-            label: 'Префикс сенсоров ячеек (напр. sensor.redodo_battery_cell_voltage_)',
+            label: 'Префикс сенсоров ячеек единой сборки (1..8)',
             selector: { text: {} },
           },
         ],
