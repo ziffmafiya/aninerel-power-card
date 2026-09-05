@@ -271,11 +271,32 @@ export class AninerelPowerCard extends LitElement implements LovelaceCard {
     const batteryWatts = this._getNumber(this._config.entities.battery_power);
     const gridWatts = this._getNumber(this._config.entities.grid_power);
     const loadWatts = this._getNumber(this._config.entities.load_power);
+    // Electrical telemetry
+    const batteryVoltage = this._config.battery_voltage_entity
+      ? this._getNumber(this._config.battery_voltage_entity)
+      : null;
+    const batteryCurrent = this._config.battery_current_entity
+      ? this._getNumber(this._config.battery_current_entity)
+      : null;
+    const gridVoltage = this._config.grid_voltage_entity
+      ? this._getNumber(this._config.grid_voltage_entity)
+      : null;
 
-    // Battery SOC
-    const batterySoc = this._config.bms?.soc_entity
+    // Battery SOC (reads BMS sensor, with intelligent fallback for 24V 8S LiFePO4 pack)
+    let batterySoc = this._config.bms?.soc_entity
       ? this._getNumber(this._config.bms.soc_entity)
-      : 80;
+      : 0;
+
+    if ((batterySoc <= 0 || isNaN(batterySoc)) && batteryVoltage && batteryVoltage >= 20) {
+      if (batteryVoltage >= 27.2) batterySoc = 100;
+      else if (batteryVoltage >= 26.8) batterySoc = Math.round(80 + ((batteryVoltage - 26.8) / 0.4) * 20);
+      else if (batteryVoltage >= 26.4) batterySoc = Math.round(50 + ((batteryVoltage - 26.4) / 0.4) * 30);
+      else if (batteryVoltage >= 26.0) batterySoc = Math.round(20 + ((batteryVoltage - 26.0) / 0.4) * 30);
+      else if (batteryVoltage >= 24.0) batterySoc = Math.max(5, Math.round(((batteryVoltage - 24.0) / 2.0) * 20));
+      else batterySoc = 5;
+    } else if (batterySoc <= 0 && (!batteryVoltage || batteryVoltage < 20)) {
+      batterySoc = 80;
+    }
 
     // Inverter statuses & alerts
     const operatingMode = this._getState(this._config.operating_mode_entity);
@@ -292,17 +313,6 @@ export class AninerelPowerCard extends LitElement implements LovelaceCard {
     const isWarning = this._getState(this._config.safety?.warnings_active_entity) === 'on';
     const warningCode = this._config.safety?.warning_code_entity
       ? parseInt(this._getState(this._config.safety.warning_code_entity), 10)
-      : null;
-
-    // Electrical telemetry
-    const batteryVoltage = this._config.battery_voltage_entity
-      ? this._getNumber(this._config.battery_voltage_entity)
-      : null;
-    const batteryCurrent = this._config.battery_current_entity
-      ? this._getNumber(this._config.battery_current_entity)
-      : null;
-    const gridVoltage = this._config.grid_voltage_entity
-      ? this._getNumber(this._config.grid_voltage_entity)
       : null;
 
     // Daily energy

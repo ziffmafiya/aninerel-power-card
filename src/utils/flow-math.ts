@@ -7,12 +7,13 @@ export interface NodePosition {
   radius: number;
 }
 
+// Optimized layout coordinates on a 500x360 coordinate grid
 export const NODE_POSITIONS = {
-  solar: { x: 250, y: 46, radius: 36 },
-  inverter: { x: 250, y: 170, radius: 34 },
-  battery: { x: 74, y: 170, radius: 42 },
-  home: { x: 426, y: 170, radius: 38 },
-  grid: { x: 250, y: 294, radius: 36 },
+  solar: { x: 250, y: 44, radius: 34 },
+  inverter: { x: 250, y: 175, radius: 32 },
+  battery: { x: 74, y: 175, radius: 40 },
+  home: { x: 426, y: 175, radius: 36 },
+  grid: { x: 250, y: 308, radius: 34 },
 };
 
 /**
@@ -23,7 +24,7 @@ export function calcFlowDuration(
   watts: number,
   maxPower = 4200,
   minRate = 0.75,
-  maxRate = 6.0,
+  maxRate = 5.0,
   useLog = true
 ): number {
   const absWatts = Math.abs(watts);
@@ -46,14 +47,14 @@ export function calcFlowDuration(
  * Calculates dynamic stroke width for flow lines (2.5px to 5.5px) based on power.
  */
 export function calcStrokeWidth(watts: number, maxPower = 4200): number {
-  const minWidth = 2.5;
+  const minWidth = 2.8;
   const maxWidth = 5.5;
   const ratio = Math.min(Math.abs(watts) / maxPower, 1);
   return Number((minWidth + ratio * (maxWidth - minWidth)).toFixed(1));
 }
 
 /**
- * Generates all active flow paths between nodes and central inverter hub.
+ * Generates all active flow paths between nodes and central inverter hub with precise non-overlapping clearance.
  */
 export function calculateFlowPaths(
   solarWatts: number,
@@ -72,60 +73,51 @@ export function calculateFlowPaths(
   const gridExportColor = colors?.grid_export || DEFAULT_COLORS.grid_export;
   const homeColor = colors?.home || DEFAULT_COLORS.home;
 
-  const { solar, inverter, battery, home, grid } = NODE_POSITIONS;
-
-  // 1. Solar -> Inverter (always down towards inverter)
+  // 1. Solar -> Inverter (vertical from bottom of Solar text to top of Inverter badge)
   const solarP = Math.max(0, solarWatts);
   if (solarP >= activeThreshold) {
     paths.push({
       id: 'flow-solar-inverter',
-      d: `M ${solar.x} ${solar.y + solar.radius} L ${inverter.x} ${inverter.y - inverter.radius}`,
+      d: `M 250 82 L 250 140`,
       watts: solarP,
       color: solarColor,
-      reversed: false, // flow flows down towards inverter
+      reversed: false,
     });
   }
 
-  // 2. Inverter -> Home (always right towards home load)
+  // 2. Inverter -> Home (horizontal from right of Inverter badge to left of Home badge)
   const loadP = Math.max(0, loadWatts);
   if (loadP >= activeThreshold) {
     paths.push({
       id: 'flow-inverter-home',
-      d: `M ${inverter.x + inverter.radius} ${inverter.y} L ${home.x - home.radius} ${home.y}`,
+      d: `M 284 175 L 388 175`,
       watts: loadP,
       color: homeColor,
-      reversed: false, // flow flows right towards home
+      reversed: false,
     });
   }
 
-  // 3. Battery <-> Inverter
-  // batteryWatts > 0 : charging (Inverter -> Battery, flows left)
-  // batteryWatts < 0 : discharging (Battery -> Inverter, flows right)
+  // 3. Battery <-> Inverter (horizontal between Battery right edge and Inverter left edge)
   const absBatP = Math.abs(batteryWatts);
   if (absBatP >= activeThreshold) {
     const isCharging = batteryWatts > 0;
     paths.push({
       id: 'flow-battery-inverter',
-      // Path drawn from Battery (left) to Inverter (right)
-      d: `M ${battery.x + battery.radius} ${battery.y} L ${inverter.x - inverter.radius} ${inverter.y}`,
+      d: `M 116 175 L 216 175`,
       watts: absBatP,
       color: isCharging ? batteryChargeColor : batteryDischargeColor,
-      // If charging, flow must move from Inverter to Battery (right to left -> reverse)
-      // If discharging, flow moves from Battery to Inverter (left to right -> normal)
-      reversed: isCharging,
+      reversed: isCharging, // Charging moves from Inverter to Battery (right to left)
     });
   }
 
-  // 4. Grid <-> Inverter
-  // gridWatts > 0 : import from grid (Grid -> Inverter, flows up)
-  // gridWatts < 0 : export to grid (Inverter -> Grid, flows down)
+  // 4. Grid <-> Inverter (vertical from Inverter bottom to Grid top)
   const absGridP = Math.abs(gridWatts);
   if (absGridP >= activeThreshold) {
     const isImport = gridWatts > 0;
     paths.push({
       id: 'flow-grid-inverter',
-      // Path drawn from Inverter (top) to Grid (bottom)
-      d: `M ${inverter.x} ${inverter.y + inverter.radius} L ${grid.x} ${grid.y - grid.radius}`,
+      // Line connects bottom of Inverter text (210) to top of Grid badge (274)
+      d: `M 250 210 L 250 274`,
       watts: absGridP,
       color: isImport ? gridImportColor : gridExportColor,
       // If importing, flow moves from Grid up to Inverter (bottom to top -> reverse)

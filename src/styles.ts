@@ -159,7 +159,7 @@ export const cardStyles = css`
     width: 100%;
     max-width: 520px;
     margin: 0 auto;
-    aspect-ratio: 500 / 340;
+    aspect-ratio: 500 / 360;
     user-select: none;
   }
 
@@ -519,7 +519,7 @@ export const cardStyles = css`
     align-items: flex-end;
     gap: 6px;
     flex-grow: 1;
-    height: 68px;
+    height: 76px;
     padding-bottom: 2px;
   }
 
@@ -563,13 +563,14 @@ export const cardStyles = css`
   }
 
   .cell-voltage {
-    font-size: 0.68rem;
-    font-weight: 600;
-    line-height: 1;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
   }
 
   .cell-id {
-    font-size: 0.62rem;
+    font-size: 0.64rem;
     color: var(--secondary-text);
     line-height: 1;
   }
