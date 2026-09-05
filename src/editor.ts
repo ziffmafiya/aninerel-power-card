@@ -111,6 +111,11 @@ export class AninerelPowerCardEditor extends LitElement {
         title: localize('editor.bms_group', this.hass),
         schema: [
           {
+            name: 'dual_battery',
+            label: 'Две батареи 12В последовательно (Серия 24В)',
+            selector: { boolean: {} },
+          },
+          {
             name: 'soc_entity',
             label: 'Уровень заряда АКБ (SOC %)',
             selector: { entity: { domain: 'sensor' } },

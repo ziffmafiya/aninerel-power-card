@@ -84,16 +84,32 @@ operating_mode_entity: sensor.aninerel_anl_4200t_24l_w_pro_operating_mode
 charging_active_entity: binary_sensor.aninerel_anl_4200t_24l_w_pro_charging_active
 inverter_temperature_entity: sensor.aninerel_anl_4200t_24l_w_pro_inverter_temperature
 
-# 3. BMS Redodo LiFePO4
+# 3. BMS Redodo LiFePO4 (Вариант: 2x 12В аккумулятора последовательно = 24В)
 bms:
-  soc_entity: sensor.redodo_battery_state_of_charge
-  voltage_entity: sensor.redodo_battery_total_voltage
-  temperature_entity: sensor.redodo_battery_temperature_probe_1
-  cell_count: 8
-  cell_voltage_prefix: "sensor.redodo_battery_cell_voltage_"
-  cell_delta_entity: sensor.redodo_battery_cell_delta
-  cycle_count_entity: sensor.redodo_battery_discharge_cycles
-  remaining_capacity_entity: sensor.redodo_battery_remaining_capacity
+  dual_battery: true
+  battery_1:
+    name: "АКБ #1 (12V)"
+    soc_entity: sensor.redodo_1_state_of_charge
+    voltage_entity: sensor.redodo_1_total_voltage
+    temperature_entity: sensor.redodo_1_temperature
+    cell_count: 4
+    cell_voltage_prefix: "sensor.redodo_1_cell_voltage_"
+  battery_2:
+    name: "АКБ #2 (12V)"
+    soc_entity: sensor.redodo_2_state_of_charge
+    voltage_entity: sensor.redodo_2_total_voltage
+    temperature_entity: sensor.redodo_2_temperature
+    cell_count: 4
+    cell_voltage_prefix: "sensor.redodo_2_cell_voltage_"
+
+# ИЛИ Вариант для единого 24В блока:
+# bms:
+#   soc_entity: sensor.redodo_battery_state_of_charge
+#   voltage_entity: sensor.redodo_battery_total_voltage
+#   temperature_entity: sensor.redodo_battery_temperature_probe_1
+#   cell_count: 8
+#   cell_voltage_prefix: "sensor.redodo_battery_cell_voltage_"
+#   cell_delta_entity: sensor.redodo_battery_cell_delta
 
 # 4. Управление и автоматизации
 controls:

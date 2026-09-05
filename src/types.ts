@@ -65,8 +65,21 @@ export interface EntitiesConfig {
   load_power: string;     // sensor...load_power (W)
 }
 
+export interface SingleBatteryConfig {
+  name?: string;
+  soc_entity?: string;
+  voltage_entity?: string;
+  current_entity?: string;
+  temperature_entity?: string;
+  cell_count?: number; // default: 4
+  cell_voltage_prefix?: string;
+  cycle_count_entity?: string;
+  remaining_capacity_entity?: string;
+  cell_delta_entity?: string;
+}
+
 export interface BmsConfig {
-  soc_entity: string;                 // sensor.battery_state_of_charge (%)
+  soc_entity?: string;                 // sensor.battery_state_of_charge (%)
   voltage_entity?: string;            // sensor.battery_total_voltage (V)
   current_entity?: string;            // sensor.battery_current (A)
   temperature_entity?: string;        // sensor.battery_temperature_probe_1 (°C)
@@ -77,6 +90,11 @@ export interface BmsConfig {
   remaining_capacity_entity?: string; // sensor.battery_remaining_capacity (Ah)
   full_capacity_entity?: string;      // sensor.battery_full_charge_capacity (Ah)
   cell_delta_entity?: string;         // sensor.battery_cell_delta (mV)
+
+  // Dual Battery Series (2x 12V LiFePO4 = 24V)
+  dual_battery?: boolean;
+  battery_1?: SingleBatteryConfig;
+  battery_2?: SingleBatteryConfig;
 }
 
 export interface ControlsConfig {

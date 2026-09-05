@@ -6,7 +6,7 @@ import { cardStyles } from './styles';
 import { renderHeaderBar } from './components/header-bar';
 import { renderPowerFlow } from './components/power-flow';
 import { renderElectricalParams } from './components/electrical-params';
-import { renderBmsPanel, CellData } from './components/bms-panel';
+import { renderBmsPanel, CellData, DualBatteryData } from './components/bms-panel';
 import { renderControlsPanel } from './components/controls-panel';
 import { renderEnergyStats } from './components/energy-stats';
 import { renderAlertPanel } from './components/alert-panel';
@@ -173,6 +173,28 @@ export class AninerelPowerCard extends LitElement implements LovelaceCard {
       for (let i = 1; i <= count; i++) {
         ids.push(`${prefix}${i}`);
       }
+
+      // Battery 1
+      if (bms.battery_1) {
+        const b1 = bms.battery_1;
+        if (b1.soc_entity) ids.push(b1.soc_entity);
+        if (b1.voltage_entity) ids.push(b1.voltage_entity);
+        if (b1.temperature_entity) ids.push(b1.temperature_entity);
+        if (b1.cell_voltage_prefix) {
+          for (let i = 1; i <= (b1.cell_count || 4); i++) ids.push(`${b1.cell_voltage_prefix}${i}`);
+        }
+      }
+
+      // Battery 2
+      if (bms.battery_2) {
+        const b2 = bms.battery_2;
+        if (b2.soc_entity) ids.push(b2.soc_entity);
+        if (b2.voltage_entity) ids.push(b2.voltage_entity);
+        if (b2.temperature_entity) ids.push(b2.temperature_entity);
+        if (b2.cell_voltage_prefix) {
+          for (let i = 1; i <= (b2.cell_count || 4); i++) ids.push(`${b2.cell_voltage_prefix}${i}`);
+        }
+      }
     }
 
     if (controls) {
@@ -329,27 +351,95 @@ export class AninerelPowerCard extends LitElement implements LovelaceCard {
       ? this._getNumber(this._config.daily_energy.battery_discharge_entity)
       : null;
 
-    // BMS Redodo telemetry
+    // BMS Redodo telemetry (Single or Dual 12V Series)
     const bms = this._config.bms;
-    let bmsCells: CellData[] = [];
-    if (bms) {
-      const cellCount = bms.cell_count || 8;
-      const prefix = bms.cell_voltage_prefix || 'sensor.redodo_battery_cell_voltage_';
+    const isDual = Boolean(bms?.dual_battery || (bms?.battery_1 && bms?.battery_2));
 
-      for (let i = 1; i <= cellCount; i++) {
-        const entityId = `${prefix}${i}`;
-        let rawVal = this._getNumber(entityId);
-        if (rawVal > 100) {
-          rawVal = rawVal / 1000;
+    let bmsCells: CellData[] = [];
+    let bat1Data: DualBatteryData | undefined;
+    let bat2Data: DualBatteryData | undefined;
+
+    if (bms) {
+      if (isDual) {
+        const b1 = bms.battery_1;
+        const b2 = bms.battery_2;
+
+        const v1 = b1?.voltage_entity
+          ? this._getNumber(b1.voltage_entity)
+          : batteryVoltage
+          ? Number((batteryVoltage / 2).toFixed(2))
+          : null;
+        const v2 = b2?.voltage_entity
+          ? this._getNumber(b2.voltage_entity)
+          : batteryVoltage
+          ? Number((batteryVoltage / 2).toFixed(2))
+          : null;
+
+        const soc1 = b1?.soc_entity ? this._getNumber(b1.soc_entity) : (batterySoc || null);
+        const soc2 = b2?.soc_entity ? this._getNumber(b2.soc_entity) : (batterySoc || null);
+
+        const t1 = b1?.temperature_entity ? this._getNumber(b1.temperature_entity) : null;
+        const t2 = b2?.temperature_entity ? this._getNumber(b2.temperature_entity) : null;
+
+        // Scan 4 cells for Battery 1
+        const cells1: CellData[] = [];
+        const prefix1 = b1?.cell_voltage_prefix || 'sensor.redodo_1_cell_voltage_';
+        for (let i = 1; i <= (b1?.cell_count || 4); i++) {
+          let val = this._getNumber(`${prefix1}${i}`);
+          if (val > 100) val = val / 1000;
+          if (val <= 0 && v1 && v1 > 0) val = Number((v1 / 4).toFixed(3));
+          cells1.push({ index: i, voltage: val > 0 ? val : 3.38, rawEntityId: `${prefix1}${i}` });
         }
-        if (rawVal <= 0 && batteryVoltage && batteryVoltage > 0) {
-          rawVal = Number((batteryVoltage / cellCount).toFixed(3));
+
+        // Scan 4 cells for Battery 2
+        const cells2: CellData[] = [];
+        const prefix2 = b2?.cell_voltage_prefix || 'sensor.redodo_2_cell_voltage_';
+        for (let i = 1; i <= (b2?.cell_count || 4); i++) {
+          let val = this._getNumber(`${prefix2}${i}`);
+          if (val > 100) val = val / 1000;
+          if (val <= 0 && v2 && v2 > 0) val = Number((v2 / 4).toFixed(3));
+          cells2.push({ index: i + 4, voltage: val > 0 ? val : 3.38, rawEntityId: `${prefix2}${i}` });
         }
-        bmsCells.push({
-          index: i,
-          voltage: rawVal > 0 ? rawVal : 3.33,
-          rawEntityId: entityId,
-        });
+
+        bat1Data = {
+          name: b1?.name || 'АКБ #1 (12V)',
+          voltage: v1,
+          soc: soc1,
+          temperature: t1,
+          cells: cells1,
+        };
+
+        bat2Data = {
+          name: b2?.name || 'АКБ #2 (12V)',
+          voltage: v2,
+          soc: soc2,
+          temperature: t2,
+          cells: cells2,
+        };
+
+        // In series connection, lowest pack limits capacity
+        if (soc1 !== null && soc2 !== null && soc1 > 0 && soc2 > 0) {
+          batterySoc = Math.min(soc1, soc2);
+        }
+      } else {
+        const cellCount = bms.cell_count || 8;
+        const prefix = bms.cell_voltage_prefix || 'sensor.redodo_battery_cell_voltage_';
+
+        for (let i = 1; i <= cellCount; i++) {
+          const entityId = `${prefix}${i}`;
+          let rawVal = this._getNumber(entityId);
+          if (rawVal > 100) {
+            rawVal = rawVal / 1000;
+          }
+          if (rawVal <= 0 && batteryVoltage && batteryVoltage > 0) {
+            rawVal = Number((batteryVoltage / cellCount).toFixed(3));
+          }
+          bmsCells.push({
+            index: i,
+            voltage: rawVal > 0 ? rawVal : 3.33,
+            rawEntityId: entityId,
+          });
+        }
       }
     }
 
@@ -417,10 +507,13 @@ export class AninerelPowerCard extends LitElement implements LovelaceCard {
             })
           : ''}
 
-        <!-- 5. BMS Redodo LiFePO4 Cell Telemetry & Balancing -->
+        <!-- 5. BMS Redodo LiFePO4 Cell Telemetry & Balancing (Single or Dual Battery Series) -->
         ${this._config.show_bms !== false && bms
           ? renderBmsPanel({
               bmsConfig: bms,
+              isDual,
+              battery1: bat1Data,
+              battery2: bat2Data,
               soc: batterySoc,
               temperature: bms.temperature_entity ? this._getNumber(bms.temperature_entity) : null,
               temperature2: bms.temperature_2_entity ? this._getNumber(bms.temperature_2_entity) : null,

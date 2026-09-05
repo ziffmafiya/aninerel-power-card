@@ -443,7 +443,7 @@ export const cardStyles = css`
   }
 
   /* ============================================================
-     BMS REDODO SECTION
+     BMS REDODO SECTION (SINGLE & DUAL BATTERY)
      ============================================================ */
   .bms-card-section {
     background: rgba(255, 255, 255, 0.02);
@@ -459,6 +459,8 @@ export const cardStyles = css`
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .bms-header-title {
@@ -485,6 +487,13 @@ export const cardStyles = css`
     border: 1px solid rgba(16, 185, 129, 0.3);
   }
 
+  .bms-header-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
   .bms-delta-pill {
     display: inline-flex;
     align-items: center;
@@ -506,6 +515,121 @@ export const cardStyles = css`
 
   .bms-delta-pill ha-icon {
     --mdc-icon-size: 14px;
+  }
+
+  .series-drift-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    color: #fbbf24;
+    line-height: 1.3;
+  }
+
+  .series-drift-alert ha-icon {
+    --mdc-icon-size: 18px;
+    color: #f59e0b;
+    flex-shrink: 0;
+  }
+
+  /* Dual Battery Layout */
+  .dual-battery-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pack-column {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pack-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .pack-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pack-name {
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .pack-soc-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    padding: 1px 6px;
+    border-radius: 9999px;
+  }
+
+  .pack-telemetry-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .pack-voltage {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #38bdf8;
+  }
+
+  .pack-temp {
+    font-size: 0.7rem;
+    color: var(--secondary-text);
+  }
+
+  .series-bridge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .bridge-line {
+    width: 2px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .bridge-badge {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--solar-color);
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 3px 6px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  .pack-cells {
+    height: 72px;
   }
 
   .bms-body {
