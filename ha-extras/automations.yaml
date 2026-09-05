@@ -1,0 +1,80 @@
+# ==============================================================================
+# Автоматизации безопасности и оповещений для инвертора Aninerel + Redodo BMS
+# Добавьте в ваш automations.yaml
+# ==============================================================================
+
+# 1. 🚨 КРИТИЧЕСКАЯ АВАРИЯ ИНВЕРТОРА
+- id: aninerel_inverter_critical_fault
+  alias: "Инвертор: Срабатывание аварийной защиты"
+  description: "Оповещение при возникновении аппаратной ошибки инвертора с расшифровкой кода"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.aninerel_anl_4200t_24l_w_pro_fault_active
+      to: "on"
+  action:
+    - service: notify.persistent_notification
+      data:
+        title: "🚨 АВАРИЯ ИНВЕРТОРА ANINEREL!"
+        message: >
+          Зафиксирован код сбоя F{{ states('sensor.aninerel_anl_4200t_24l_w_pro_fault_code') }}.
+          Описание: {{ states('sensor.inverter_fault_description') }}.
+          Проверьте состояние нагрузок и оборудования!
+    # Раскомментируйте для Telegram / Push уведомлений:
+    # - service: notify.notify
+    #   data:
+    #     title: "🚨 АВАРИЯ ИНВЕРТОРА!"
+    #     message: "Код ошибки F{{ states('sensor.aninerel_anl_4200t_24l_w_pro_fault_code') }}: {{ states('sensor.inverter_fault_description') }}"
+
+# 2. 🛡️ ЗАЩИТА LIFEPO4: АВТО-ОТКЛЮЧЕНИЕ EQUALIZATION
+- id: aninerel_equalization_safety_guard
+  alias: "Инвертор: Защита LiFePO4 от выравнивания (Equalization)"
+  description: "Автоматически выключает режим выравнивания через 5 секунд при случайной активации"
+  trigger:
+    - platform: state
+      entity_id: switch.aninerel_anl_4200t_24l_w_pro_battery_equalization
+      to: "on"
+  action:
+    - service: notify.persistent_notification
+      data:
+        title: "⚠️ ВНИМАНИЕ: Режим Equalization был включен!"
+        message: "Режим выравнивания опасен для аккумуляторов LiFePO4 Redodo. Автоматика отключает его для сохранения ресурса ячеек."
+    - delay:
+        seconds: 5
+    - service: switch.turn_off
+      target:
+        entity_id: switch.aninerel_anl_4200t_24l_w_pro_battery_equalization
+
+# 3. 🌡️ ПРЕДУПРЕЖДЕНИЕ О ПЕРЕГРЕВЕ СИЛОВОГО БЛОКА (>55°C)
+- id: aninerel_high_temperature_warning
+  alias: "Инвертор: Контроль температуры радиатора"
+  description: "Уведомление при нагреве силового блока выше 55 градусов"
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.aninerel_anl_4200t_24l_w_pro_inverter_temperature
+      above: 55
+  action:
+    - service: notify.persistent_notification
+      data:
+        title: "🌡️ ПРЕДУПРЕЖДЕНИЕ О НАГРЕВЕ"
+        message: "Температура радиатора инвертора достигла {{ states('sensor.aninerel_anl_4200t_24l_w_pro_inverter_temperature') }}°C. Обеспечьте вентиляцию помещения!"
+
+# 4. 🔌 ОТКЛЮЧЕНИЕ ГОРОДСКОЙ СЕТИ И ПЕРЕХОД НА БАТАРЕЮ
+- id: aninerel_grid_outage_alert
+  alias: "Инвертор: Переход на автономное питание (Блэкаут)"
+  description: "Оповещение при пропадании напряжения в электросети"
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.aninerel_anl_4200t_24l_w_pro_grid_voltage
+      below: 150
+  condition:
+    - condition: state
+      entity_id: sensor.aninerel_anl_4200t_24l_w_pro_operating_mode
+      state: "Battery"
+  action:
+    - service: notify.persistent_notification
+      data:
+        title: "🔌 ВНЕШНЯЯ СЕТЬ ОТКЛЮЧЕНА"
+        message: >
+          Дом переведен на питание от батареи Redodo.
+          Текущий уровень заряда: {{ states('sensor.redodo_battery_state_of_charge') | default(states('sensor.aninerel_anl_4200t_24l_w_pro_battery_voltage') ~ 'V') }}%.
+          Текущая нагрузка: {{ states('sensor.aninerel_anl_4200t_24l_w_pro_load_power') }} Вт.

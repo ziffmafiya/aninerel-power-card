@@ -1,0 +1,74 @@
+{
+  "common": {
+    "version": "Версия",
+    "name": "Aninerel Power Card",
+    "description": "Ультимативная карточка для инвертора Aninerel ANL 4200T + BMS Redodo"
+  },
+  "mode": {
+    "battery": "Батарея",
+    "mains": "Сеть",
+    "bypass": "Байпас",
+    "line": "Сеть",
+    "grid": "Сеть"
+  },
+  "nodes": {
+    "solar": "Солнце",
+    "battery": "АКБ",
+    "inverter": "Инвертор",
+    "home": "Дом",
+    "grid": "Сеть"
+  },
+  "flow": {
+    "charge": "Заряд",
+    "discharge": "Разряд",
+    "standby": "Ожидание",
+    "import": "Импорт",
+    "export": "Экспорт"
+  },
+  "params": {
+    "battery": "Батарея DC",
+    "grid": "Сеть AC",
+    "self_sufficiency": "Автономность",
+    "normal": "Норма",
+    "deviated": "Отклонение",
+    "sag": "Просадка",
+    "surge": "Перенапряжение"
+  },
+  "bms": {
+    "title": "BMS Redodo LiFePO4",
+    "temp": "Темп.",
+    "cycles": "Циклы",
+    "capacity": "Емкость",
+    "balanced": "Сбалансировано",
+    "drift": "Естественный дрейф",
+    "imbalance": "Алерт разбаланса"
+  },
+  "controls": {
+    "title": "Инвертор: Управление и автоматизации",
+    "charge_source": "Источник заряда",
+    "output_priority": "Приоритет питания дома",
+    "max_charge_current": "Макс. ток сетевого заряда",
+    "bulk_voltage": "Напряжение Bulk",
+    "float_voltage": "Напряжение Float",
+    "equalization": "Режим Equalization (Выравнивание)",
+    "equalization_warning": "⚠️ Для LiFePO4 должен быть ВСЕГДА ВЫКЛЮЧЕН во избежание перезаряда ячеек!"
+  },
+  "energy": {
+    "title": "Суточный баланс энергии",
+    "total": "Итого",
+    "load": "Потребление дома",
+    "grid_import": "Импорт из сети",
+    "bat_charge": "Закачано в АКБ",
+    "bat_discharge": "Отдано батареей"
+  },
+  "editor": {
+    "title": "Заголовок карточки",
+    "entities_group": "⚡ Мощности реального времени (Обязательно)",
+    "params_group": "📊 Электрические параметры и телеметрия",
+    "bms_group": "🔋 Телеметрия BMS Redodo LiFePO4",
+    "controls_group": "🎛️ Управление инвертором и настройки",
+    "safety_group": "🛡️ Безопасность и диагностика сбоев",
+    "energy_group": "📈 Суточные счетчики электроэнергии",
+    "display_group": "🎨 Настройки отображения и видимости секций"
+  }
+}

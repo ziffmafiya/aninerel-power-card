@@ -1,0 +1,72 @@
+# ==============================================================================
+# Вспомогательные Template-сенсоры для инвертора Aninerel ANL-4200T + BMS Redodo
+# Добавьте эти сенсоры в ваш configuration.yaml (секция template:)
+# ==============================================================================
+
+template:
+  - sensor:
+      # 1. Расчетная суточная автономность (%)
+      - name: "Инвертор: Суточная автономность"
+        unique_id: aninerel_daily_self_sufficiency
+        unit_of_measurement: "%"
+        icon: mdi:shield-sun
+        state: >
+          {% set grid = states('sensor.aninerel_anl_4200t_24l_w_pro_estimated_grid_import_energy_today') | float(0) %}
+          {% set load = states('sensor.aninerel_anl_4200t_24l_w_pro_estimated_load_energy_today') | float(0) %}
+          {% if load > 0 %}
+            {{ [0, ((1 - grid / load) * 100) | round(1)] | max }}
+          {% else %}
+            100
+          {% endif %}
+
+      # 2. Направление и статус потока батареи
+      - name: "Инвертор: Статус батареи"
+        unique_id: aninerel_battery_flow_status
+        icon: mdi:battery-sync
+        state: >
+          {% set p = states('sensor.aninerel_anl_4200t_24l_w_pro_battery_power') | float(0) %}
+          {% if p > 30 %}
+            Заряжается (+{{ p | round(0) }} Вт)
+          {% elif p < -30 %}
+            Разряжается ({{ p | round(0) }} Вт)
+          {% else %}
+            Режим ожидания
+          {% endif %}
+
+      # 3. Человекочитаемое описание кода ошибки
+      - name: "Инвертор: Описание ошибки"
+        unique_id: aninerel_fault_description
+        icon: mdi:alert-circle-outline
+        state: >
+          {% set code = states('sensor.aninerel_anl_4200t_24l_w_pro_fault_code') | int(0) %}
+          {% set faults = {
+            0: 'Ошибок нет',
+            1: 'Вентилятор заблокирован',
+            2: 'Перегрев инвертора',
+            3: 'Перенапряжение батареи',
+            4: 'Глубокий разряд батареи',
+            5: 'Короткое замыкание на выходе 230В',
+            6: 'Выходное напряжение завышено',
+            7: 'Таймаут перегрузки мощности',
+            8: 'Перенапряжение шины DC',
+            9: 'Ошибка плавного пуска шины',
+            51: 'Токовая перегрузка транзисторов',
+            52: 'Просадка напряжения шины DC',
+            53: 'Ошибка самотестирования инвертора',
+            58: 'Выходное напряжение занижено'
+          } %}
+          {{ faults.get(code, 'Неизвестный код сбоя: ' ~ code) }}
+
+      # 4. Расчетная чистая выработка PV за сутки (если нет прямого сенсора)
+      - name: "Инвертор: Расчетная солнечная энергия"
+        unique_id: aninerel_estimated_pv_energy_today
+        unit_of_measurement: "кВт·ч"
+        device_class: energy
+        state_class: total_increasing
+        icon: mdi:solar-power
+        state: >
+          {% set load = states('sensor.aninerel_anl_4200t_24l_w_pro_estimated_load_energy_today') | float(0) %}
+          {% set grid = states('sensor.aninerel_anl_4200t_24l_w_pro_estimated_grid_import_energy_today') | float(0) %}
+          {% set chg = states('sensor.aninerel_anl_4200t_24l_w_pro_estimated_battery_charge_energy_today') | float(0) %}
+          {% set dis = states('sensor.aninerel_anl_4200t_24l_w_pro_estimated_battery_discharge_energy_today') | float(0) %}
+          {{ [0, (load + chg - grid - dis) | round(2)] | max }}

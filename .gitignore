@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Logs & cache
+*.log
+.npm
+.DS_Store
+Thumbs.db
+
+# Do NOT ignore dist/ because HACS needs the compiled JavaScript bundle directly from the repo!
+!dist/aninerel-power-card.js

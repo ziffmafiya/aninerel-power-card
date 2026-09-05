@@ -1,0 +1,74 @@
+{
+  "common": {
+    "version": "Version",
+    "name": "Aninerel Power Card",
+    "description": "Ultimate card for Aninerel ANL 4200T inverter + Redodo BMS"
+  },
+  "mode": {
+    "battery": "Battery",
+    "mains": "Mains",
+    "bypass": "Bypass",
+    "line": "Line",
+    "grid": "Grid"
+  },
+  "nodes": {
+    "solar": "Solar",
+    "battery": "Battery",
+    "inverter": "Inverter",
+    "home": "Home",
+    "grid": "Grid"
+  },
+  "flow": {
+    "charge": "Charge",
+    "discharge": "Discharge",
+    "standby": "Standby",
+    "import": "Import",
+    "export": "Export"
+  },
+  "params": {
+    "battery": "Battery DC",
+    "grid": "Grid AC",
+    "self_sufficiency": "Self-Sufficiency",
+    "normal": "Normal",
+    "deviated": "Deviated",
+    "sag": "Low (Sag)",
+    "surge": "High (Surge)"
+  },
+  "bms": {
+    "title": "BMS Redodo LiFePO4",
+    "temp": "Temp",
+    "cycles": "Cycles",
+    "capacity": "Capacity",
+    "balanced": "Balanced",
+    "drift": "Normal Drift",
+    "imbalance": "Imbalance Alert"
+  },
+  "controls": {
+    "title": "Inverter: Controls & Automations",
+    "charge_source": "Charge Source Priority",
+    "output_priority": "Home Output Priority",
+    "max_charge_current": "Max AC Charging Current",
+    "bulk_voltage": "Bulk Voltage",
+    "float_voltage": "Float Voltage",
+    "equalization": "Equalization Mode",
+    "equalization_warning": "⚠️ For LiFePO4 MUST ALWAYS BE OFF to prevent cell damage!"
+  },
+  "energy": {
+    "title": "Daily Energy Balance",
+    "total": "Total",
+    "load": "Home Consumption",
+    "grid_import": "Grid Import",
+    "bat_charge": "Battery Charge",
+    "bat_discharge": "Battery Discharge"
+  },
+  "editor": {
+    "title": "Card Title",
+    "entities_group": "⚡ Real-time Power Entities (Required)",
+    "params_group": "📊 Electrical Parameters & Telemetry",
+    "bms_group": "🔋 BMS Redodo LiFePO4 Telemetry",
+    "controls_group": "🎛️ Inverter Controls & Settings",
+    "safety_group": "🛡️ Safety & Diagnostics",
+    "energy_group": "📈 Daily Energy Counters",
+    "display_group": "🎨 Layout & Visualization Toggles"
+  }
+}
